@@ -7,6 +7,8 @@ class AppSideBar extends StatelessWidget {
     {'title': 'Settings', 'icon': Icons.settings, 'route': '/settings'},
   ];
 
+  const AppSideBar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(

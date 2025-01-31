@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart'; // Import Login page
+// Import Login page
 // import '../user_data.dart'; // Import user_data.dart to access global users map
 
 class RegisterPage extends StatefulWidget {

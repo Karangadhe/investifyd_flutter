@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'views/auth/login_page.dart';
-import 'views/dashboard/dashboard_page.dart';
 import 'routes/app_routes.dart';
 
 void main() {

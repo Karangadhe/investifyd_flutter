@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/api_service.dart'; // Update to your actual path
 
 class FundListScreen extends StatefulWidget {
+  const FundListScreen({super.key});
+
   @override
   _FundListScreenState createState() => _FundListScreenState();
 }
