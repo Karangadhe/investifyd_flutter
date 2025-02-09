@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AppSideBar extends StatelessWidget {
+  AppSideBar({super.key});
+
   final List<Map<String, dynamic>> menuItems = [
-    {'title': 'Home', 'icon': Icons.home, 'route': '/home'},
+    {'title': 'Home', 'icon': Icons.home, 'route': '/dashboard'},
     {'title': 'Funds', 'icon': Icons.info, 'route': '/fund'},
     {'title': 'Settings', 'icon': Icons.settings, 'route': '/settings'},
   ];
-
-  const AppSideBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
+          const DrawerHeader(
+            decoration: BoxDecoration(
               color: Colors.transparent,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/logo.png',
-                  height: 60,
-                  fit: BoxFit.contain,
-                ),
-              ],
+            child: Center(
+              child: Image(
+                image: AssetImage('assets/logo.png'),
+                height: 60,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           Expanded(
@@ -36,8 +34,7 @@ class AppSideBar extends StatelessWidget {
                   leading: Icon(item['icon'], color: Colors.black),
                   title: Text(item['title']),
                   onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, item['route']);
+                    context.go(item['route']); // Navigate using go_router
                   },
                 );
               }).toList(),

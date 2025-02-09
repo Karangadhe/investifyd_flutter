@@ -5,16 +5,10 @@ import '../../components/app_top_bar.dart';
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
-  void _handleLogout(BuildContext context) {
-    // Implement logout logic (e.g., navigate to login screen)
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppTopBar(title: 'Dashboard', onLogout: () => _handleLogout(context)),
+      appBar: AppTopBar(title: 'Dashboard'),
       drawer: AppSideBar(),
       body: Center(
         child: Padding(

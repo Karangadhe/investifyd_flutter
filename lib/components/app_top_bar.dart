@@ -1,30 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../core/services/auth_service.dart'; // Ensure this has a method to remove token
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final VoidCallback onLogout;
 
   const AppTopBar({
     super.key,
     required this.title,
-    required this.onLogout,
   });
+
+  Future<void> _handleLogout(BuildContext context) async {
+    await AuthService.clearToken(); // Remove stored authentication token
+    context.go('/login'); // Navigate to login screen after logout
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: const Color(0xFF0A2542),
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.menu, color: Colors.white),
-        onPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
       ),
       title: Row(
         children: [
           Image.asset(
-            'assets/logo.png', // Ensure the logo image is in assets folder
+            'assets/logo.png',
             height: 40,
             fit: BoxFit.contain,
           ),
@@ -63,7 +70,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              onLogout();
+              _handleLogout(context);
             },
             child: const Text('Logout'),
           ),

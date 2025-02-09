@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/services/api_service.dart'; // Make sure you import your ApiService file
-import './registration_page.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/api_service.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,57 +14,54 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  String _errorMessage = '';
+  String? _errorMessage;
 
-  // This function will be called when the user presses the login button
   Future<void> _login() async {
     setState(() {
-      _isLoading = true; // Show loading indicator
-      _errorMessage = ''; // Reset any previous error message
+      _isLoading = true;
+      _errorMessage = null;
     });
 
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text.trim();
+    final String username = _usernameController.text.trim();
+    final String password = _passwordController.text.trim();
 
-    // Check if username and password are provided
     if (username.isEmpty || password.isEmpty) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Please fill in both username and password';
+        _errorMessage = 'Please enter your email and password';
       });
       return;
     }
 
-    // Prepare the request body (username and password)
-    final body = {
+    final Map<String, dynamic> body = {
       'userEmail': username,
       'password': password,
     };
 
     try {
-      // Call the API service to fetch login data
+      // Call API to authenticate user
       final response = await ApiService.fetchLoginAPI(
           '/ins/authenticate', 'POST',
           body: body);
 
-      // Check the response and handle successful login
-      if (response['token'] != null) {
-        // Save the token in SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', response['token']);
+      if (response.containsKey('token')) {
+        await AuthService.saveToken(response['token']); // Save token securely
 
-        // Navigate to another screen (e.g., dashboard or home)r
-        Navigator.pushReplacementNamed(context, '/fund');
+        if (!mounted) return;
+        context.go('/dashboard'); // Redirect to dashboard
       } else {
         setState(() {
-          _isLoading = false;
-          _errorMessage = 'Login failed: ${response['message']}';
+          _errorMessage =
+              response['message'] ?? 'Login failed. Please try again.';
         });
       }
     } catch (e) {
       setState(() {
+        _errorMessage = 'An error occurred. Please check your connection.';
+      });
+    } finally {
+      setState(() {
         _isLoading = false;
-        _errorMessage = 'An error occurred. Please try again.';
       });
     }
   }
@@ -142,10 +139,7 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => RegisterPage()),
-                );
+                context.go('/register');
               },
               child: Text(
                 'Create a new account',

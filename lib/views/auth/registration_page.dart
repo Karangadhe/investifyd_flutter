@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 // Import Login page
 // import '../user_data.dart'; // Import user_data.dart to access global users map
 
@@ -142,7 +143,7 @@ class _RegisterPageState extends State<RegisterPage> {
             SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.go('/login');
               },
               child: Text(
                 'Already have an account? Login here',

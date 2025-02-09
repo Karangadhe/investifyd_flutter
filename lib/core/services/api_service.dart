@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl =
-      'https://stage.app.investifyd.com/api'; // Adjust for your environment
+  static const String baseUrl = 'https://stage.app.investifyd.com/api';
 
   static Map<String, String> get jsonHeader => {
         'Accept': 'application/json',
@@ -13,36 +12,30 @@ class ApiService {
         'x-app-type': 'WEBAPP',
       };
 
-  // Function to get the authentication token (from SharedPreferences or wherever it's stored)
+  // Function to get the authentication token from AuthService
   static Future<Map<String, String>> get tokenHeader async {
-    final prefs = await SharedPreferences.getInstance();
-    String? authToken = prefs.getString('authToken');
+    String? authToken = await AuthService.getToken();
+    print(authToken);
     return {
-      'x-access-token': authToken ?? '', // Provide the token or an empty string
+      'x-access-token': authToken ?? '',
     };
   }
 
-  // General API fetch method for standard JSON requests
+  // General API request function
   static Future<Map<String, dynamic>> fetchAPI(String endpoint, String method,
       {Map<String, dynamic>? body}) async {
     final url = Uri.parse(baseUrl + endpoint);
-
     final headers = {...jsonHeader, ...await tokenHeader};
-    final options = <String, dynamic>{'headers': headers, 'method': method};
-
-    if (method == 'POST' && body != null) {
-      options['body'] = json.encode(body);
-    }
 
     try {
       final response = await _makeRequest(method, url, body, headers);
       return _checkStatus(response.statusCode, response.body);
     } catch (e) {
-      throw 'There was an error processing your request, please try again later.';
+      throw 'API request error: $e';
     }
   }
 
-  // Fetch method for media uploads (multipart/form-data)
+  // API request function for media uploads
   static Future<Map<String, dynamic>> fetchMediaAPI(
       String endpoint, String method,
       {Map<String, dynamic>? body}) async {
@@ -56,6 +49,7 @@ class ApiService {
     try {
       final request = http.MultipartRequest(method, url)
         ..headers.addAll(headers);
+
       if (method == 'POST' && body != null) {
         request.fields
             .addAll(body.map((key, value) => MapEntry(key, value.toString())));
@@ -65,11 +59,11 @@ class ApiService {
       final responseBody = await response.stream.bytesToString();
       return _checkStatus(response.statusCode, responseBody);
     } catch (e) {
-      throw 'There was an error processing your request, please try again later.';
+      throw 'Media upload failed: $e';
     }
   }
 
-  // Login API call
+  // Login API call (without token)
   static Future<Map<String, dynamic>> fetchLoginAPI(
       String endpoint, String method,
       {Map<String, dynamic>? body}) async {
@@ -80,53 +74,54 @@ class ApiService {
       final response = await _makeRequest(method, url, body, headers);
       return _checkStatus(response.statusCode, response.body);
     } catch (e) {
-      throw 'There was an error processing your request, please try again later.';
+      throw 'Login failed: $e';
     }
   }
 
-  // Helper method to handle the request (POST, GET, etc.)
+  // Unified method to handle API requests
   static Future<http.Response> _makeRequest(String method, Uri url,
       Map<String, dynamic>? body, Map<String, String> headers) async {
-    if (method == 'POST') {
-      return await http.post(url, headers: headers, body: json.encode(body));
-    } else if (method == 'GET') {
-      return await http.get(url, headers: headers);
-    } else {
-      throw 'Unsupported method $method';
+    switch (method.toUpperCase()) {
+      case 'POST':
+        return await http.post(url, headers: headers, body: json.encode(body));
+      case 'GET':
+        return await http.get(url, headers: headers);
+      case 'PUT':
+        return await http.put(url, headers: headers, body: json.encode(body));
+      case 'DELETE':
+        return await http.delete(url, headers: headers);
+      default:
+        throw 'Unsupported HTTP method: $method';
     }
   }
 
-  // Checks the status code and processes the response
+  // Response validation and error handling
   static Map<String, dynamic> _checkStatus(
       int statusCode, String responseBody) {
-    const successCodes = [200, 201, 204, 202];
+    const successCodes = [200, 201, 202, 204];
     if (successCodes.contains(statusCode)) {
       return json.decode(responseBody);
     } else {
-      throw 'Failed to load data: $statusCode';
+      throw getErrorMessage(responseBody);
     }
   }
 
-  // Get detailed error message from the response body
+  // Extracts a detailed error message from API responses
   static String getErrorMessage(String responseBody) {
     try {
       final error = json.decode(responseBody);
-      if (error.containsKey('data')) {
-        return error['data'] ?? '';
-      } else if (error.containsKey('error')) {
-        return error['error'] ?? '';
-      } else if (error.containsKey('message')) {
-        return error['message'] ?? '';
-      }
-      return 'There was an error processing your request, please try again.';
+      if (error.containsKey('message')) return error['message'];
+      if (error.containsKey('error')) return error['error'];
+      if (error.containsKey('data')) return error['data'];
+      return 'Unknown error occurred.';
     } catch (e) {
-      return 'There was an error processing your request, please try again.';
+      return 'Invalid error response format.';
     }
   }
 
-  // Redirect to login page or handle logout functionality
-  static void redirectToLogin() {
-    // Clear session or auth token and navigate to login page.
-    // If using Navigator or routes, you can handle that here.
+  // Logout functionality: Clears token using AuthService
+  static Future<void> logout() async {
+    await AuthService.clearToken();
+    // TODO: Navigate to login screen if using Navigator.
   }
 }

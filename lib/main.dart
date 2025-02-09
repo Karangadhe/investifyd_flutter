@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import './core/services/auth_service.dart';
 import 'routes/app_routes.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final bool isLoggedIn = await AuthService.isLoggedIn();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Login App',
       theme: ThemeData(
         primarySwatch: MaterialColor(
@@ -30,8 +36,7 @@ class MyApp extends StatelessWidget {
         ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/login',
-      onGenerateRoute: AppRoutes.generateRoute,
+      routerConfig: AppRoutes.router, // Fixes Undefined Name Error
     );
   }
 }

@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '/components/app_side_bar.dart';
+import '/components/app_top_bar.dart';
 import '../../core/services/api_service.dart'; // Update to your actual path
 
 class FundListScreen extends StatefulWidget {
@@ -59,7 +59,8 @@ class _FundListScreenState extends State<FundListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Fund List')),
+      appBar: AppTopBar(title: 'Fund List'),
+      drawer: AppSideBar(),
       body: isLoading && allFunds.isEmpty
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
